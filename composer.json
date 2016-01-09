@@ -1,0 +1,22 @@
+{
+  "name": "denchikby/phalcon-mongodb-odm",
+  "description": "Phalcon MongoDB ODM",
+  "version": "1.0",
+  "keywords": ["mongodb", "mongo", "php", "odm", "orm", "phalcon"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Denis Butko",
+      "homepage": "http://github.com/DenchikBY"
+    }
+  ],
+  "require": {
+    "ext-mongodb": "*",
+    "mongodb/mongodb": "^1.0.0@beta"
+  },
+  "autoload": {
+    "psr-4": {
+      "DenchikBY\\": "src"
+    }
+  }
+}
