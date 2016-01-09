@@ -186,9 +186,9 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         unset($this->array[$offset]);
     }
 
-
-    function jsonSerialize()
+    public function jsonSerialize()
     {
         return $this->toJson();
     }
+
 }
