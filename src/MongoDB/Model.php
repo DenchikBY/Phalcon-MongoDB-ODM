@@ -17,7 +17,7 @@ abstract class Model extends \MongoDB\Collection
 
     /**
      * @param array $attributes
-     * @return Collection
+     * @return Model
      */
     public static function init($attributes = [])
     {
@@ -62,7 +62,7 @@ abstract class Model extends \MongoDB\Collection
         return self::$_db;
     }
 
-    public function find($filter = [], array $options = [], $fillModels = true)
+    public function find(array $filter = [], array $options = [], $fillModels = true)
     {
         return $this->getQueryResult(parent::find($filter, $options), $fillModels);
     }
@@ -183,17 +183,15 @@ abstract class Model extends \MongoDB\Collection
         return $data;
     }
 
-    protected function castAttribute($param, $value)
+    public function castAttribute($param, $value)
     {
         if (isset(static::$casts[$param])) {
             $type = static::$casts[$param];
-            if ($type == 'integer') return (int)$value;
-            else if ($type == 'float') return (float)$value;
-            else if ($type == 'boolean') return (bool)$value;
-            else if ($type == 'string') return (string)$value;
-            else if ($type == 'array') return (array)$value;
-            else if ($type == 'object') return (object)$value;
-            else if ($type == 'id') return ($value instanceof \MongoDB\BSON\ObjectId) ? $value : new \MongoDB\BSON\ObjectId((string)$value);
+            if ($type == 'id') {
+                return ($value instanceof \MongoDB\BSON\ObjectId) ? $value : new \MongoDB\BSON\ObjectId((string)$value);
+            } else if (in_array($type, ['integer', 'float', 'boolean', 'string', 'array', 'object'])) {
+                settype($value, $type);
+            }
         }
         return $value;
     }

@@ -50,39 +50,37 @@ class Builder
         return $this;
     }
 
-    public function where($field, $operation, $value = null)
+    public function where($field, $operation = null, $value = null)
     {
-        if ($value == null) {
-            $value = $operation;
-            $operation = '=';
-        }
-        $expr = [$field => [self::$_operations[$operation] => $value]];
-        if (!$this->_match) {
-            $this->_match = $expr;
-        } else {
-            if (!isset($this->_match['$and']) && !isset($this->_match['$or'])) {
-                $this->_match = ['$and' => [$this->_match, $expr]];
-            } else {
-                array_push($this->_match['$and'], $expr);
-            }
-        }
-        return $this;
+        return $this->andOrWhereCommon($field, $operation, $value);
     }
 
-    public function orWhere($field, $operation, $value = null)
+    public function orWhere($field, $operation = null, $value = null)
     {
-        if ($value == null) {
-            $value = $operation;
-            $operation = '=';
+        return $this->andOrWhereCommon($field, $operation, $value, '$or');
+    }
+
+    protected function andOrWhereCommon($field, $operation, $value, $operator = '$and')
+    {
+        if ($field instanceof \Closure) {
+            $q = new static($this->_model);
+            $field($q);
+            $expr = $q->getQuery()[0]['$match'];
+        } else {
+            if ($value == null) {
+                $value = $operation;
+                $operation = '=';
+            }
+            $value = $this->_modelObject->castAttribute($field, $value);
+            $expr = [$field => [self::$_operations[$operation] => $value]];
         }
-        $expr = [$field => [self::$_operations[$operation] => $value]];
         if (!$this->_match) {
             $this->_match = $expr;
         } else {
             if (!isset($this->_match['$and']) && !isset($this->_match['$or'])) {
-                $this->_match = ['$or' => [$this->_match, $expr]];
+                $this->_match = [$operator => [$this->_match, $expr]];
             } else {
-                array_push($this->_match['$or'], $expr);
+                array_push($this->_match[$operator], $expr);
             }
         }
         return $this;

@@ -1,6 +1,11 @@
 Phalcon MongoDB ODM
 ===============
 
+[![Latest Stable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/stable)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Total Downloads](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/downloads)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Latest Unstable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/unstable)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![License](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/license)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+
 Tiny, simple and functional MongoDB ODM library for Phalcon framework for new mongodb php extension
 -----
 
@@ -117,6 +122,14 @@ $user->age = '20';
 
 var_dump($user->age); => int(20)
 ```
+
+Casts also work in where methods of builder:
+
+```php
+User::where('age', '20')->get();
+```
+
+age will converted to integer and query will load normally.
 
 Relations
 -------------
@@ -274,6 +287,17 @@ $count = $builder->decrement('coins', 10);
 $count = $builder->update(['banned' => 1]); // update founded documents with specified fields, return count of them
 
 $count = $builder->delete(); // delete founded documents, return count of them
+```
+
+Advanced Wheres
+-----
+
+For grouping where conditions:
+
+```php
+$query = Ads::query()->where('auto_id', '567153ea43946846683e77ff')->where(function (Builder $query) {
+    $query->where('body', 1)->orWhere('capacity', 2);
+});
 ```
 
 Query Result Collection
