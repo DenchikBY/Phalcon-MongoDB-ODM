@@ -62,7 +62,7 @@ abstract class Model extends \MongoDB\Collection
         return self::$_db;
     }
 
-    public function find(array $filter = [], array $options = [], $fillModels = true)
+    public function find($filter = [], array $options = [], $fillModels = true)
     {
         return $this->getQueryResult(parent::find($filter, $options), $fillModels);
     }
@@ -79,7 +79,7 @@ abstract class Model extends \MongoDB\Collection
             foreach ($result as $row) {
                 $collections[] = static::init($row);
             }
-            return new \App\Library\Collection($collections);
+            return new Collection($collections);
         } else {
             return $result->toArray();
         }
@@ -101,13 +101,14 @@ abstract class Model extends \MongoDB\Collection
             if (isset($data[$name])) {
                 if ($settings[1] == 'one') {
                     $value = $settings[0]::init($data[$name][0]);
+                    $this->setRelation($name, $value);
                 } else {
                     $value = [];
                     foreach ($data[$name] as $row) {
                         $value[] = $settings[0]::init($row);
                     }
+                    $this->setRelation($name, new Collection($value));
                 }
-                $this->setRelation($name, new \App\Library\Collection($value));
                 unset($data[$name]);
             }
         }

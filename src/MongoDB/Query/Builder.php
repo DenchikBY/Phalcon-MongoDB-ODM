@@ -2,6 +2,9 @@
 
 namespace DenchikBY\MongoDB\Query;
 
+use DenchikBY\MongoDB\Collection;
+use DenchikBY\MongoDB\Model;
+
 class Builder
 {
 
@@ -31,7 +34,7 @@ class Builder
 
     public function columns(array $fields)
     {
-        $this->_options[] = ['$project' => array_fill_keys($fields, 1)];
+        $this->_options['$project'] = array_fill_keys($fields, 1);
         return $this;
     }
 
@@ -40,12 +43,12 @@ class Builder
         $model = $this->_model;
         if (isset($model::$relations[$relationName])) {
             $settings = $model::$relations[$relationName];
-            $this->_options[] = ['$lookup' => [
+            $this->_options['$lookup'][] = [
                 'from' => $settings[0]::getSource(),
                 'localField' => $settings[2],
                 'foreignField' => $settings[3],
                 'as' => $relationName
-            ]];
+            ];
         }
         return $this;
     }
@@ -122,30 +125,36 @@ class Builder
 
     public function orderBy($orderBy, $direction = 'asc')
     {
-        $this->_options[] = ['$sort' => [$orderBy => ($direction == 'asc' ? 1 : -1)]];
+        $this->_options['$sort'] = [$orderBy => ($direction == 'asc' ? 1 : -1)];
         return $this;
     }
 
     public function limit($limit, $offset = null)
     {
-        $this->_options[] = ['$limit' => $limit];
+        $this->_options['$limit'] = $limit;
         if ($offset > 0) {
-            $this->_options[] = ['$skip' => $offset];
+            $this->_options['$skip'] = $offset;
         }
         return $this;
     }
 
     public function groupBy($group)
     {
-        $this->_options[] = ['$group' => ['_id' => '$' . $group]];
+        $this->_options['$group'] = ['_id' => '$' . $group];
         return $this;
     }
 
+    /**
+     * @return Collection
+     */
     public function get()
     {
         return $this->_modelObject->aggregate($this->getQuery());
     }
 
+    /**
+     * @return Model
+     */
     public function first()
     {
         return $this->_modelObject->findFirst($this->_match);
@@ -153,12 +162,12 @@ class Builder
 
     public function count()
     {
-        return $this->_modelObject->count($this->_match, $this->_options);
+        return $this->_modelObject->count($this->_match);
     }
 
     public function increment($field, $value = 1)
     {
-        return $this->_modelObject->updateMany($this->_match, ['$inc' => [$field => $value]]);
+        return $this->_modelObject->updateMany($this->getQuery(), ['$inc' => [$field => $value]]);
     }
 
     public function decrement($field, $value = 1)
@@ -168,19 +177,59 @@ class Builder
 
     public function update(array $attributes)
     {
-        return $this->_modelObject->updateMany($this->_match, ['$set' => $attributes]);
+        return $this->_modelObject->updateMany($this->getQuery(), ['$set' => $attributes]);
     }
 
     public function delete()
     {
-        return $this->_modelObject->deleteMany($this->_match);
+        return $this->_modelObject->deleteMany($this->getQuery());
+    }
+
+    public function max($field)
+    {
+        $this->_options['$group'] = ['_id' => null, 'result' => ['$max' => '$' . $field]];
+        return $this->_modelObject->aggregate($this->getOptions(), [], false)[0]->result;
+    }
+
+    public function min($field)
+    {
+        $this->_options['$group'] = ['_id' => null, 'result' => ['$min' => '$' . $field]];
+        return $this->_modelObject->aggregate($this->getOptions(), [], false)[0]->result;
+    }
+
+    public function avg($field)
+    {
+        $this->_options['$group'] = ['_id' => null, 'result' => ['$avg' => '$' . $field]];
+        $result = $this->_modelObject->aggregate($this->getOptions(), [], false);
+        return $result[0]->result;
+    }
+
+    public function sum($field)
+    {
+        $this->_options['$group'] = ['_id' => null, 'result' => ['$sum' => '$' . $field]];
+        return $this->_modelObject->aggregate($this->getQuery(), [], false)[0]->result;
+    }
+
+    protected function getOptions()
+    {
+        $result = [];
+        foreach ($this->_options as $key => $value) {
+            if ($key == '$lookup') {
+                foreach ($value as $join) {
+                    $result[] = ['$lookup' => $join];
+                }
+            } else {
+                $result[] = [$key => $value];
+            }
+        }
+        return $result;
     }
 
     public function getQuery()
     {
         $query = [['$match' => count($this->_match) > 0 ? $this->_match : ['_id' => ['$exists' => true]]]];
         if (count($this->_options) > 0) {
-            $query = array_merge($query, $this->_options);
+            $query = array_merge($query, $this->getOptions());
         }
         return $query;
     }

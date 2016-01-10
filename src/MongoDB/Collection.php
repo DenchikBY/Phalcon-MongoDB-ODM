@@ -15,9 +15,9 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
 
     private $array = [];
 
-    public function __construct(array $array)
+    public function __construct($array)
     {
-        $this->array = $array;
+        $this->array = (array)$array;
     }
 
     public function current()

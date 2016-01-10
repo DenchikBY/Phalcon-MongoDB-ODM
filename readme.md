@@ -299,6 +299,14 @@ $count = $builder->decrement('coins', 10);
 $count = $builder->update(['banned' => 1]); // update founded documents with specified fields, return count of them
 
 $count = $builder->delete(); // delete founded documents, return count of them
+
+$age = $builder->max('age');
+
+$age = $builder->min('age');
+
+$age = $builder->avg('age');
+
+$total = $builder->sum('age');
 ```
 
 Advanced Wheres
