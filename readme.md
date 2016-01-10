@@ -33,11 +33,23 @@ or
 Configuration
 -------------
 
-Add service to DI:
+Add settings and service to DI:
 
 ```php
+$di->set('config', function () {
+    return new \Phalcon\Config([
+		'mongodb' => [
+			'host' => 'localhost',
+			'port' => 27017,
+			'database' => 'auto'
+		]
+	]);
+}, true);
+
 $di->set('mongo', function () {
-    return new \MongoDB\Driver\Manager('mongodb://localhost:27017');
+    $config = $this->get('config')->mongodb;
+    $manager = new \MongoDB\Driver\Manager('mongodb://' . $config->host . ':' . $config->port);
+    return $manager;
 }, true);
 ```
 
