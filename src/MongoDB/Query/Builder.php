@@ -167,7 +167,7 @@ class Builder
 
     public function increment($field, $value = 1)
     {
-        return $this->_modelObject->updateMany($this->getQuery(), ['$inc' => [$field => $value]]);
+        return $this->_modelObject->updateMany($this->_match, ['$inc' => [$field => $value]]);
     }
 
     public function decrement($field, $value = 1)
@@ -177,31 +177,30 @@ class Builder
 
     public function update(array $attributes)
     {
-        return $this->_modelObject->updateMany($this->getQuery(), ['$set' => $attributes]);
+        return $this->_modelObject->updateMany($this->_match, ['$set' => $attributes]);
     }
 
     public function delete()
     {
-        return $this->_modelObject->deleteMany($this->getQuery());
+        return $this->_modelObject->deleteMany($this->_match);
     }
 
     public function max($field)
     {
         $this->_options['$group'] = ['_id' => null, 'result' => ['$max' => '$' . $field]];
-        return $this->_modelObject->aggregate($this->getOptions(), [], false)[0]->result;
+        return $this->_modelObject->aggregate($this->getQuery(), [], false)[0]->result;
     }
 
     public function min($field)
     {
         $this->_options['$group'] = ['_id' => null, 'result' => ['$min' => '$' . $field]];
-        return $this->_modelObject->aggregate($this->getOptions(), [], false)[0]->result;
+        return $this->_modelObject->aggregate($this->getQuery(), [], false)[0]->result;
     }
 
     public function avg($field)
     {
         $this->_options['$group'] = ['_id' => null, 'result' => ['$avg' => '$' . $field]];
-        $result = $this->_modelObject->aggregate($this->getOptions(), [], false);
-        return $result[0]->result;
+        return $this->_modelObject->aggregate($this->getQuery(), [], false)[0]->result;
     }
 
     public function sum($field)
