@@ -3,10 +3,12 @@
 namespace DenchikBY\MongoDB;
 
 use DenchikBY\MongoDB\Query\Builder;
+use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\UTCDateTime;
 use Phalcon\Di;
 use Phalcon\Text;
 
-abstract class Model extends \MongoDB\Collection
+class Model extends \MongoDB\Collection
 {
 
     protected $_id, $_attributes = [], $_relations = [];
@@ -30,12 +32,15 @@ abstract class Model extends \MongoDB\Collection
 
     public static function create(array $attributes)
     {
-        return static::init($attributes)->save();
+        $model = static::init($attributes)->save();
+        $model->event('afterCreate');
+        $model->event('afterSave');
+        return $model;
     }
 
     public static function findById($id)
     {
-        $result = static::init()->findOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+        $result = static::init()->findOne(['_id' => new ObjectID($id)]);
         return $result ? static::init((array)$result) : null;
     }
 
@@ -46,7 +51,7 @@ abstract class Model extends \MongoDB\Collection
 
     public static function destroy($id)
     {
-        return static::init()->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
+        return static::init()->deleteOne(['_id' => new ObjectID($id)]);
     }
 
     public static function getSource()
@@ -60,6 +65,11 @@ abstract class Model extends \MongoDB\Collection
             self::$_db = Di::getDefault()->get('config')->mongodb->database;
         }
         return self::$_db;
+    }
+
+    public static function mongoTime()
+    {
+        return new UTCDateTime(round(microtime(true) * 1000) . '');
     }
 
     public function find($filter = [], array $options = [], $fillModels = true)
@@ -121,24 +131,28 @@ abstract class Model extends \MongoDB\Collection
         if ($attributes != null) {
             $this->fill($attributes);
         }
-        $this->beforeSave();
+        $this->event('beforeSave');
         if (isset($this->_id)) {
-            $this->beforeUpdate();
+            $this->event('beforeUpdate');
             $this->updateOne(['_id' => $this->_id], ['$set' => $this->_attributes]);
+            $this->event('afterUpdate');
         } else {
-            $this->beforeCreate();
-            $result = $this->insertOne($this->_attributes);
-            return $this->fill($result);
+            $this->event('beforeCreate');
+            $this->fill($this->insertOne($this->_attributes));
+            $this->event('afterCreate');
         }
+        $this->event('afterSave');
         return $this;
     }
 
     public function update(array $attributes)
     {
-        $this->beforeSave();
-        $this->beforeUpdate();
+        $this->event('beforeSave');
+        $this->event('beforeUpdate');
         $this->fill($attributes);
         $this->updateOne(['_id' => $this->_id], ['$set' => $attributes]);
+        $this->event('afterUpdate');
+        $this->event('afterSave');
         return $this;
     }
 
@@ -158,21 +172,44 @@ abstract class Model extends \MongoDB\Collection
 
     public function delete()
     {
-        return $this->deleteOne(['_id' => $this->getId(false)]);
+        $this->event('beforeDelete');
+        $this->deleteOne(['_id' => $this->getId(false)]);
+        $this->event('afterDelete');
+        return $this;
+    }
+
+    public function unsetField($field)
+    {
+        $path = explode('.', $field);
+        $lastPart = end($path);
+        if (count($path) > 1) {
+            $ref = $this->getAttrRef($field, 1);
+        } else {
+            $ref = &$this->_attributes;
+        }
+        if ($ref != false) {
+            $type = gettype($ref);
+            if ($type == 'object' && isset($ref->{$lastPart})) {
+                unset($ref->{$lastPart});
+            } else if ($type == 'array' && isset($ref[$lastPart])) {
+                unset($ref[$lastPart]);
+            } else {
+                return false;
+            }
+            $this->updateOne(['_id' => $this->_id], ['$unset' => [$field => '']]);
+            return true;
+        }
+        return false;
     }
 
     public function beforeCreate()
     {
-        $this->created_at = new \MongoDB\BSON\UTCDateTime(round(microtime(true) * 1000) . '');
+        $this->created_at = self::mongoTime();
     }
 
     public function beforeUpdate()
     {
-        $this->updated_at = new \MongoDB\BSON\UTCDateTime(round(microtime(true) * 1000) . '');
-    }
-
-    public function beforeSave()
-    {
+        $this->updated_at = self::mongoTime();
     }
 
     protected function castArrayAttributes(array $data)
@@ -189,7 +226,14 @@ abstract class Model extends \MongoDB\Collection
         if (isset(static::$casts[$param])) {
             $type = static::$casts[$param];
             if ($type == 'id') {
-                return ($value instanceof \MongoDB\BSON\ObjectId) ? $value : new \MongoDB\BSON\ObjectId((string)$value);
+                if (!($value instanceof ObjectID)) {
+                    try {
+                        return new ObjectID((string)$value);
+                    } catch (\Exception $e) {
+                        return null;
+                    }
+                }
+                return $value;
             } else if (in_array($type, ['integer', 'float', 'boolean', 'string', 'array', 'object'])) {
                 settype($value, $type);
             }
@@ -241,15 +285,28 @@ abstract class Model extends \MongoDB\Collection
         return $className . '_id';
     }
 
-    public function toArray()
+    public function toArray($params = [])
     {
-        $this->_attributes = array_map(function ($item) {
+        $attributes = array_merge(['id' => (string)$this->_id], $this->_attributes);
+        if (isset($params['include']) || isset($params['exclude'])) {
+            $attributes = array_filter($attributes, function ($value, $key) use ($params) {
+                if (isset($params['include'])) {
+                    return in_array($key, $params['include']);
+                }
+                return !in_array($key, $params['exclude']);
+            }, ARRAY_FILTER_USE_BOTH);
+        }
+        $attributes = array_map(function ($item) {
             if (gettype($item) == 'object') {
-                return (string)$item;
+                if ($item instanceof ObjectID) {
+                    return (string)$item;
+                } else {
+                    return (array)$item;
+                }
             }
             return $item;
-        }, $this->_attributes);
-        $this->_relations = array_map(function ($item) {
+        }, $attributes);
+        $relations = array_map(function ($item) {
             if (gettype($item) == 'object') {
                 return $item->toArray();
             } else if (gettype($item) == 'array') {
@@ -259,9 +316,40 @@ abstract class Model extends \MongoDB\Collection
             }
             return $item;
         }, $this->_relations);
-        $result = array_merge($this->_attributes, $this->_relations);
-        $result['id'] = (string)$this->_id;
+        $result = array_merge($attributes, $relations);
         return $result;
+    }
+
+    protected function event($name)
+    {
+        if (method_exists($this, $name)) {
+            $this->{$name}();
+        }
+    }
+
+    protected function getAttrRef($path, $rightOffset = 0)
+    {
+        $path = explode('.', $path);
+        $length = count($path) - $rightOffset;
+        $return = &$this->_attributes;
+        for ($i = 0; $i <= $length - 1; ++$i) {
+            if (isset($return->{$path[$i]})) {
+                if ($i == $length - 1) {
+                    return $return->{$path[$i]};
+                } else {
+                    $return = &$return->{$path[$i]};
+                }
+            } else if (isset($return[$path[$i]])) {
+                if ($i == $length - 1) {
+                    return $return[$path[$i]];
+                } else {
+                    $return = &$return[$path[$i]];
+                }
+            } else {
+                return false;
+            }
+        }
+        return $return;
     }
 
     public static function query()

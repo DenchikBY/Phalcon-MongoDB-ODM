@@ -209,6 +209,11 @@ class Builder
         return $this->_modelObject->aggregate($this->getQuery(), [], false)[0]->result;
     }
 
+    public function unsetField($field)
+    {
+        return $this->_modelObject->updateMany($this->_match, ['$unset' => [$field => '']]);
+    }
+
     protected function getOptions()
     {
         $result = [];

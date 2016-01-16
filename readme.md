@@ -112,6 +112,25 @@ or init and save in db
 $user = User::create(['name' => 'DenchikBY']);
 ```
 
+Methods
+---------
+
+To array:
+
+```php
+$ad = Ads::init()->first();
+var_dump($ad->toArray()); // array of all fields
+var_dump($ad->toArray(['include' => ['id', 'name']])); // array of specified fields
+var_dump($ad->toArray(['exclude' => ['user_id']])); // array of all fields except specified
+```
+
+Unset field:
+
+```php
+$ad = Ads::init()->first();
+$ad->unsetField('counters.views');
+```
+
 Attributes Casting
 -------------
 
@@ -243,6 +262,22 @@ class User extends Model {
 }
 ```
 
+Events
+-------------
+
+Existed events before/after for actions save, create, update, delete.
+
+```php
+class User extends Model {
+
+    public function afterCreate()
+    {
+        Email::send($this->email, 'emails.succeddfull_registration', ['user' => $this]);
+    }
+
+}
+```
+
 Query Builder
 -------------
 
@@ -307,6 +342,8 @@ $age = $builder->min('age');
 $age = $builder->avg('age');
 
 $total = $builder->sum('age');
+
+$builder->unsetField('counters.views');
 ```
 
 Advanced Wheres
