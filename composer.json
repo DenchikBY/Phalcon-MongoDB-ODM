@@ -12,12 +12,12 @@
   ],
   "require": {
     "ext-mongodb": "*",
-    "mongodb/mongodb": "^1.0.0@beta"
+    "mongodb/mongodb": "^1.0"
   },
   "autoload": {
     "psr-4": {
       "DenchikBY\\MongoDB\\": "src/MongoDB"
     }
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "stable"
 }

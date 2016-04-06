@@ -23,7 +23,7 @@ class Model extends \MongoDB\Collection
      */
     public static function init($attributes = [])
     {
-        $model = (new static(Di::getDefault()->get('mongo'), static::getDbName() . '.' . static::getSource()));
+        $model = (new static(Di::getDefault()->get('mongo'), static::getDbName(), static::getSource()));
         if (count($attributes) > 0) {
             $model->fill($attributes);
         }
