@@ -300,6 +300,8 @@ class Model extends \MongoDB\Collection
             if (gettype($item) == 'object') {
                 if ($item instanceof ObjectID) {
                     return (string)$item;
+                } elseif($item instanceof UTCDateTime){
+                    return $item->toDateTime()->format(DATE_ISO8601);
                 } else {
                     return (array)$item;
                 }
