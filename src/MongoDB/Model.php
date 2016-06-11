@@ -32,10 +32,7 @@ class Model extends \MongoDB\Collection
 
     public static function create(array $attributes)
     {
-        $model = static::init($attributes)->save();
-        $model->event('afterCreate');
-        $model->event('afterSave');
-        return $model;
+        return static::init($attributes)->save();
     }
 
     public static function findById($id)
