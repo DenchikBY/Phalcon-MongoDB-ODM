@@ -135,7 +135,8 @@ class Model extends \MongoDB\Collection
             $this->event('afterUpdate');
         } else {
             $this->event('beforeCreate');
-            $this->fill($this->insertOne($this->_attributes));
+            $insertResult = $this->insertOne($this->_attributes);
+            $this->_id = $insertResult->getInsertedId();
             $this->event('afterCreate');
         }
         $this->event('afterSave');
