@@ -38,12 +38,12 @@ Add settings and service to DI:
 ```php
 $di->set('config', function () {
     return new \Phalcon\Config([
-		'mongodb' => [
-			'host' => 'localhost',
-			'port' => 27017,
-			'database' => 'auto'
-		]
-	]);
+        'mongodb' => [
+            'host' => 'localhost',
+            'port' => 27017,
+            'database' => 'auto'
+        ]
+    ]);
 }, true);
 
 $di->set('mongo', function () use ($di) {
@@ -69,13 +69,12 @@ To specify another collection name use getSource method:
 ```php
 use DenchikBY\MongoDB\Model;
 
-class User extends Model {
-
+class User extends Model
+{
     public static function getSource()
     {
         return 'users';
     }
-
 }
 ```
 
@@ -141,12 +140,11 @@ It help to save fields to db with need type, what is very important, cause mongo
 Supported types: integer, float, boolean, string, array, object, id
 
 ```php
-class User extends Model {
-
+class User extends Model
+{
     protected static $casts = [
         'age' => 'integer'
     ];
-
 }
 
 $user->age = '20';
@@ -201,13 +199,12 @@ Scopes
 Scopes help to put common queries to methods:
 
 ```php
-class BaseModel extends Model {
-
+class BaseModel extends Model
+{
     public scopeActive($builder)
     {
         return $builder->where('active', 1);
     }
-
 }
 
 $users = User::active()->get();
@@ -220,15 +217,14 @@ Global scopes
 This scope will binded to any query of model:
 
 ```php
-class Ads extends Model {
-
+class Ads extends Model
+{
     public static $globalScopes = ['notDeleted'];
     
     public function notDeleted($builder)
     {
         return $builder->where('deleted', 0);
     }
-
 }
 ```
 
@@ -247,8 +243,8 @@ $user = User::create([
 ```
 
 ```php
-class User extends Model {
-
+class User extends Model
+{
     public function getName($value)
     {
         return ucfirst($value);
@@ -258,7 +254,6 @@ class User extends Model {
     {
         return Di::getDefault()->get('security')->hash($value);
     }
-
 }
 ```
 
@@ -268,13 +263,12 @@ Events
 Existed events before/after for actions save, create, update, delete.
 
 ```php
-class User extends Model {
-
+class User extends Model
+{
     public function afterCreate()
     {
         Email::send($this->email, 'emails.succeddfull_registration', ['user' => $this]);
     }
-
 }
 ```
 
