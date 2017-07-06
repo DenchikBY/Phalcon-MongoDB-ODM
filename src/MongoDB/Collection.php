@@ -155,7 +155,7 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
 
     public function __toString()
     {
-        if (gettype($this->array[0]) == 'object') {
+        if (isset($this->array[0]) && gettype($this->array[0]) == 'object') {
             return json_encode($this->toArray());
         } else {
             return json_encode($this->array);
