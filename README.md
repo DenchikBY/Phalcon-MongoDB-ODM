@@ -39,15 +39,15 @@ Add settings and service to DI:
 $di->set('config', function () {
     return new \Phalcon\Config([
         'mongodb' => [
-            'host' => 'localhost',
-            'port' => 27017,
+            'host'     => 'localhost',
+            'port'     => 27017,
             'database' => 'auto'
         ]
     ]);
 }, true);
 
 $di->set('mongo', function () use ($di) {
-    $config = $di->get('config')->mongodb;
+    $config  = $di->get('config')->mongodb;
     $manager = new \MongoDB\Driver\Manager('mongodb://' . $config->host . ':' . $config->port);
     return $manager;
 }, true);
@@ -171,7 +171,7 @@ field => [related model, type, local field, foreign field]
 
 ```php
 public static $relations = [
-    'user' => [Users::class, 'one', 'user_id', '_id'],
+    'user'     => [Users::class, 'one', 'user_id', '_id'],
     'comments' => [Comments::class, 'many', '_id', 'ad_id']
 ];
 ```
@@ -199,6 +199,9 @@ Scopes
 Scopes help to put common queries to methods:
 
 ```php
+/**
+ * @method $this active()
+ */
 class BaseModel extends Model
 {
     public scopeActive($builder)
@@ -208,7 +211,7 @@ class BaseModel extends Model
 }
 
 $users = User::active()->get();
-$ads = Ads::active()->get();
+$ads   = Ads::active()->get();
 ```
 
 Global scopes
@@ -237,7 +240,7 @@ For example, when you creating user and set the password, hashing may be defined
 
 ```php
 $user = User::create([
-    'name' => 'DenchikBY',
+    'name'     => 'DenchikBY',
     'password' => '1234'
 ]);
 ```
