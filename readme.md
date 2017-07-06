@@ -46,8 +46,8 @@ $di->set('config', function () {
 	]);
 }, true);
 
-$di->set('mongo', function () {
-    $config = $this->get('config')->mongodb;
+$di->set('mongo', function () use ($di) {
+    $config = $di->get('config')->mongodb;
     $manager = new \MongoDB\Driver\Manager('mongodb://' . $config->host . ':' . $config->port);
     return $manager;
 }, true);
