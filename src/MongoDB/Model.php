@@ -7,14 +7,40 @@ use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\DeleteResult;
 use MongoDB\Driver\Cursor;
+use MongoDB\UpdateResult;
 use Phalcon\Di;
 use Phalcon\Text;
 
 /**
  * @property UTCDateTime created_at
  * @property UTCDateTime updated_at
+ *
+ * @method static Builder columns(array $fields)
+ * @method static Builder join(string $relationName)
+ * @method static Builder where(string $field, string $operation = null, $value = null)
+ * @method static Builder orWhere(string $field, string $operation = null, $value = null)
+ * @method static Builder betweenWhere(string $field, int $minimum, int $maximum)
+ * @method static Builder notBetweenWhere(string $field, int $minimum, int $maximum)
+ * @method static Builder inWhere(string $field, string[]|int[] $values)
+ * @method static Builder notInWhere(string $field, string[]|int[] $values)
+ * @method static Builder orderBy(string $orderBy, string $direction = 'asc')
+ * @method static Builder limit(int $limit, int|null $offset = null)
+ * @method static Builder groupBy(string $group)
+ * @method static Collection get()
+ * @method static Model first()
+ * @method static int count()
+ * @method static UpdateResult increment(string $field, int $value = 1)
+ * @method static UpdateResult decrement(string $field, int $value = 1)
+ * @method static UpdateResult update(array $attributes)
+ * @method static DeleteResult delete()
+ * @method static int max(string $field)
+ * @method static int min(string $field)
+ * @method static int avg(string $field)
+ * @method static int sum(string $field)
+ * @method static UpdateResult unsetField(string $field)
+ * @method static array getQuery()
  */
-class Model extends \MongoDB\Collection
+abstract class Model extends \MongoDB\Collection
 {
     const EVENT_BEFORE_SAVE   = 'beforeSave';
     const EVENT_AFTER_SAVE    = 'afterSave';
@@ -302,10 +328,9 @@ class Model extends \MongoDB\Collection
             $ref = &$this->_attributes;
         }
         if ($ref != false) {
-            $type = gettype($ref);
-            if ($type == 'object' && isset($ref->{$lastPart})) {
+            if (is_object($ref) && isset($ref->{$lastPart})) {
                 unset($ref->{$lastPart});
-            } else if ($type == 'array' && isset($ref[$lastPart])) {
+            } else if (is_array($ref) && isset($ref[$lastPart])) {
                 unset($ref[$lastPart]);
             } else {
                 return false;
