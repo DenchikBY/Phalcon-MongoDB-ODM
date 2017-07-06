@@ -299,11 +299,11 @@ class Builder
      * @param array $arguments
      * @return mixed
      */
-    public function __call($name, $arguments)
+    public function __call($name, array $arguments)
     {
         if (method_exists($this->_modelObject, 'scope' . ucfirst($name))) {
             array_unshift($arguments, $this);
-            return call_user_func_array([$this->_modelObject, 'scope' . ucfirst($name)], $arguments);
+            return $this->_modelObject->{'scope' . ucfirst($name)}(...$arguments);
         }
         throw new \BadMethodCallException();
     }

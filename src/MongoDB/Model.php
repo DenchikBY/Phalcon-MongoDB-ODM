@@ -151,13 +151,13 @@ abstract class Model extends \MongoDB\Collection
      * @param array $arguments
      * @return mixed
      */
-    public static function __callStatic($name, $arguments)
+    public static function __callStatic($name, array $arguments)
     {
         if (method_exists(static::class, 'scope' . ucfirst($name))) {
             array_unshift($arguments, static::query());
-            return call_user_func_array([static::init(), 'scope' . ucfirst($name)], $arguments);
+            static::init()->{'scope' . ucfirst($name)}(...$arguments);
         }
-        return call_user_func_array([static::query(), $name], $arguments);
+        return static::query()->$name(...$arguments);
     }
 
     /**
