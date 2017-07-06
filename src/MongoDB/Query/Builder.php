@@ -20,7 +20,8 @@ class Builder
         '>' => '$gt',
         '<' => '$lt',
         '>=' => '$gte',
-        '<=' => '$lte'
+        '<=' => '$lte',
+        '%' => '$regex'
     ];
 
     public function __construct($model)
