@@ -10,6 +10,11 @@ use Phalcon\Text;
 
 class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
 {
+    /**
+     * @var int
+     *
+     * Iterable position of current element.
+     */
     private $position = 0;
 
     /**
@@ -67,7 +72,7 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
     public function toArray()
     {
         if (is_object($this->array[0])) {
-            $this->array = array_map(function ($item) {
+            $this->array = array_map(function (Model $item) {
                 return $item->toArray();
             }, $this->array);
             return $this->array;

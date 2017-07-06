@@ -55,11 +55,13 @@ class Builder
      */
     public function join($relationName)
     {
-        $model = $this->_model;
-        if (isset($model::$relations[$relationName])) {
-            $settings                    = $model::$relations[$relationName];
+        $relations = $this->_modelObject->getRelations();
+        if (isset($relations[$relationName])) {
+            $settings                    = $relations[$relationName];
+            /** @var Model $relationClass */
+            $relationClass               = $settings[0];
             $this->_options['$lookup'][] = [
-                'from'         => $settings[0]::getSource(),
+                'from'         => $relationClass::getSource(),
                 'localField'   => $settings[2],
                 'foreignField' => $settings[3],
                 'as'           => $relationName,
@@ -273,7 +275,7 @@ class Builder
 
     /**
      * @param $field
-     * @return mixed
+     * @return UpdateResult
      */
     public function unsetField($field)
     {

@@ -1,10 +1,10 @@
 Phalcon MongoDB ODM
 ===============
 
-[![Latest Stable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/stable)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
-[![Total Downloads](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/downloads)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
-[![Latest Unstable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/unstable)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
-[![License](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/license)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Latest Stable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/stable?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Total Downloads](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/downloads?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Latest Unstable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/unstable?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![License](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/license?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
 
 Tiny, simple and functional MongoDB ODM library for Phalcon framework for new mongodb php extension
 -----

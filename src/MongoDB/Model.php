@@ -5,6 +5,8 @@ namespace DenchikBY\MongoDB;
 use DenchikBY\MongoDB\Query\Builder;
 use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\DeleteResult;
+use MongoDB\Driver\Cursor;
 use Phalcon\Di;
 use Phalcon\Text;
 
@@ -77,7 +79,7 @@ class Model extends \MongoDB\Collection
 
     /**
      * @param string $id
-     * @return bool
+     * @return DeleteResult
      */
     public static function destroy($id)
     {
@@ -134,6 +136,14 @@ class Model extends \MongoDB\Collection
     }
 
     /**
+     * @return array
+     */
+    public function getRelations()
+    {
+        return static::$relations;
+    }
+
+    /**
      * @param array $filter
      * @param array $options
      * @param bool $fillModels
@@ -178,12 +188,16 @@ class Model extends \MongoDB\Collection
         foreach (static::$relations as $name => $settings) {
             if (isset($data[$name])) {
                 if ($settings[1] == 'one') {
-                    $value = $settings[0]::init($data[$name][0]);
+                    /** @var Model $relationClass */
+                    $relationClass = $settings[0];
+                    $value         = $relationClass::init($data[$name][0]);
                     $this->setRelation($name, $value);
                 } else {
                     $value = [];
                     foreach ($data[$name] as $row) {
-                        $value[] = $settings[0]::init($row);
+                        /** @var Model $relationClass */
+                        $relationClass = $settings[0];
+                        $value[]       = $relationClass::init($row);
                     }
                     $this->setRelation($name, new Collection($value));
                 }
@@ -403,12 +417,12 @@ class Model extends \MongoDB\Collection
     {
         $attributes = array_merge(['id' => (string)$this->_id], $this->_attributes);
         if (isset($params['include']) || isset($params['exclude'])) {
-            $attributes = array_filter($attributes, function ($value, $key) use ($params) {
+            $attributes = array_filter($attributes, function ($key) use ($params) {
                 if (isset($params['include'])) {
                     return in_array($key, $params['include']);
                 }
                 return !in_array($key, $params['exclude']);
-            }, ARRAY_FILTER_USE_BOTH);
+            }, ARRAY_FILTER_USE_KEY);
         }
         $attributes = array_map(function ($item) {
             if (is_object($item)) {
@@ -424,9 +438,10 @@ class Model extends \MongoDB\Collection
         }, $attributes);
         $relations  = array_map(function ($item) {
             if (is_object($item)) {
+                /** @var Model $item */
                 return $item->toArray();
             } else if (is_array($item)) {
-                return array_map(function ($item1) {
+                return array_map(function (Model $item1) {
                     return $item1->toArray();
                 }, $item);
             }
@@ -468,7 +483,7 @@ class Model extends \MongoDB\Collection
     }
 
     /**
-     * @param Collection $result
+     * @param Cursor|\Traversable $result
      * @param bool $fillModels
      * @return Collection|array
      */
@@ -511,6 +526,7 @@ class Model extends \MongoDB\Collection
         if ($localKey == null) {
             $localKey = $this->getIdFieldName($model);
         }
+        /** @var Model $model */
         $result = $model::init()->findFirst([$foreignKey => ($localKey == '_id' ? $this->getId(false) : $this->{$localKey})]);
         $this->setRelation($field, $result);
         return $result;
@@ -521,13 +537,14 @@ class Model extends \MongoDB\Collection
      * @param string $field
      * @param string $localKey
      * @param string|null $foreignKey
-     * @return Model[]|null
+     * @return Collection|Model[]|null
      */
     protected function hasMany($model, $field, $localKey = '_id', $foreignKey = null)
     {
         if ($foreignKey == null) {
             $foreignKey = $this->getIdFieldName($this);
         }
+        /** @var Model $model */
         $result = $model::init()->find([$foreignKey => ($localKey == '_id' ? $this->getId(false) : $this->{$localKey})]);
         $this->setRelation($field, $result);
         return $result;
