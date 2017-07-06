@@ -216,18 +216,6 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
     }
 
     /**
-     * @return string
-     */
-    public function __toString()
-    {
-        if (isset($this->array[0]) && is_object($this->array[0])) {
-            return json_encode($this->toArray());
-        } else {
-            return json_encode($this->array);
-        }
-    }
-
-    /**
      * @param int $offset
      * @return bool
      */
@@ -272,5 +260,17 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
     public function jsonSerialize()
     {
         return $this->toJson();
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        if (isset($this->array[0]) && is_object($this->array[0])) {
+            return json_encode($this->toArray());
+        } else {
+            return json_encode($this->array);
+        }
     }
 }

@@ -33,7 +33,7 @@ class Builder
     {
         $this->_model       = $model;
         $this->_modelObject = $model::init();
-        foreach ($model::$globalScopes as $name) {
+        foreach ($this->_modelObject->getGlobalScopes() as $name) {
             $this->_modelObject->{$name}($this);
         }
     }

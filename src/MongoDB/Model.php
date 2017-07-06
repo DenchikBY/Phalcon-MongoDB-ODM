@@ -51,9 +51,8 @@ abstract class Model extends \MongoDB\Collection
     const EVENT_BEFORE_DELETE = 'beforeDelete';
     const EVENT_AFTER_DELETE  = 'afterDelete';
 
-    public static $relations = [];
-    public static $globalScopes = [];
-
+    protected static $relations = [];
+    protected static $globalScopes = [];
     protected static $casts = [];
     protected static $_db;
 
@@ -167,6 +166,14 @@ abstract class Model extends \MongoDB\Collection
     public function getRelations()
     {
         return static::$relations;
+    }
+
+    /**
+     * @return array
+     */
+    public function getGlobalScopes()
+    {
+        return static::$globalScopes;
     }
 
     /**
