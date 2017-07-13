@@ -145,9 +145,15 @@ class Builder
         return $this;
     }
 
+
+    /**
+     * @param string $group
+     * @return Model
+     */
     public function groupByWithCount($group)
     {
         $this->_options['$group'] = ['_id' => '$' . $group, 'count' => ['$sum' => 1]];
+        return $this;
     }
 
     /**
