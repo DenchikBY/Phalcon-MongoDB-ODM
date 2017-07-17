@@ -1,10 +1,10 @@
 Phalcon MongoDB ODM
 ===============
 
-[![Latest Stable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/stable)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
-[![Total Downloads](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/downloads)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
-[![Latest Unstable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/unstable)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
-[![License](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/license)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Latest Stable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/stable?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Total Downloads](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/downloads?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![Latest Unstable Version](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/v/unstable?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
+[![License](https://poser.pugx.org/denchikby/phalcon-mongodb-odm/license?format=flat-square)](https://packagist.org/packages/denchikby/phalcon-mongodb-odm)
 
 Tiny, simple and functional MongoDB ODM library for Phalcon framework for new mongodb php extension
 -----
@@ -38,16 +38,16 @@ Add settings and service to DI:
 ```php
 $di->set('config', function () {
     return new \Phalcon\Config([
-		'mongodb' => [
-			'host' => 'localhost',
-			'port' => 27017,
-			'database' => 'auto'
-		]
-	]);
+        'mongodb' => [
+            'host'     => 'localhost',
+            'port'     => 27017,
+            'database' => 'auto'
+        ]
+    ]);
 }, true);
 
-$di->set('mongo', function () {
-    $config = $this->get('config')->mongodb;
+$di->set('mongo', function () use ($di) {
+    $config  = $di->get('config')->mongodb;
     $manager = new \MongoDB\Driver\Manager('mongodb://' . $config->host . ':' . $config->port);
     return $manager;
 }, true);
@@ -69,13 +69,12 @@ To specify another collection name use getSource method:
 ```php
 use DenchikBY\MongoDB\Model;
 
-class User extends Model {
-
+class User extends Model
+{
     public static function getSource()
     {
         return 'users';
     }
-
 }
 ```
 
@@ -141,12 +140,11 @@ It help to save fields to db with need type, what is very important, cause mongo
 Supported types: integer, float, boolean, string, array, object, id
 
 ```php
-class User extends Model {
-
+class User extends Model
+{
     protected static $casts = [
         'age' => 'integer'
     ];
-
 }
 
 $user->age = '20';
@@ -173,7 +171,7 @@ field => [related model, type, local field, foreign field]
 
 ```php
 public static $relations = [
-    'user' => [Users::class, 'one', 'user_id', '_id'],
+    'user'     => [Users::class, 'one', 'user_id', '_id'],
     'comments' => [Comments::class, 'many', '_id', 'ad_id']
 ];
 ```
@@ -201,17 +199,19 @@ Scopes
 Scopes help to put common queries to methods:
 
 ```php
-class BaseModel extends Model {
-
+/**
+ * @method $this active()
+ */
+class BaseModel extends Model
+{
     public scopeActive($builder)
     {
         return $builder->where('active', 1);
     }
-
 }
 
 $users = User::active()->get();
-$ads = Ads::active()->get();
+$ads   = Ads::active()->get();
 ```
 
 Global scopes
@@ -220,15 +220,14 @@ Global scopes
 This scope will binded to any query of model:
 
 ```php
-class Ads extends Model {
-
+class Ads extends Model
+{
     public static $globalScopes = ['notDeleted'];
     
     public function notDeleted($builder)
     {
         return $builder->where('deleted', 0);
     }
-
 }
 ```
 
@@ -241,14 +240,14 @@ For example, when you creating user and set the password, hashing may be defined
 
 ```php
 $user = User::create([
-    'name' => 'DenchikBY',
+    'name'     => 'DenchikBY',
     'password' => '1234'
 ]);
 ```
 
 ```php
-class User extends Model {
-
+class User extends Model
+{
     public function getName($value)
     {
         return ucfirst($value);
@@ -258,7 +257,6 @@ class User extends Model {
     {
         return Di::getDefault()->get('security')->hash($value);
     }
-
 }
 ```
 
@@ -268,13 +266,12 @@ Events
 Existed events before/after for actions save, create, update, delete.
 
 ```php
-class User extends Model {
-
+class User extends Model
+{
     public function afterCreate()
     {
         Email::send($this->email, 'emails.succeddfull_registration', ['user' => $this]);
     }
-
 }
 ```
 

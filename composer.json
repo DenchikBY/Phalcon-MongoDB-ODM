@@ -14,6 +14,9 @@
     "ext-mongodb": "*",
     "mongodb/mongodb": "^1.0"
   },
+  "require-dev": {
+    "phalcon/devtools": "^3.2"
+  },
   "autoload": {
     "psr-4": {
       "DenchikBY\\MongoDB\\": "src/MongoDB"

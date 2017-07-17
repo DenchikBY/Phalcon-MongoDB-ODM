@@ -10,16 +10,31 @@ use Phalcon\Text;
 
 class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
 {
-
+    /**
+     * @var int
+     *
+     * Iterable position of current element.
+     */
     private $position = 0;
 
+    /**
+     * @var array
+     *
+     * Collection data items.
+     */
     private $array = [];
 
+    /**
+     * @param array $array
+     */
     public function __construct($array)
     {
         $this->array = (array)$array;
     }
 
+    /**
+     * @return mixed
+     */
     public function current()
     {
         return $this->array[$this->position];
@@ -30,11 +45,17 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         ++$this->position;
     }
 
+    /**
+     * @return int
+     */
     public function key()
     {
         return $this->position;
     }
 
+    /**
+     * @return bool
+     */
     public function valid()
     {
         return isset($this->array[$this->position]);
@@ -45,10 +66,13 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         $this->position = 0;
     }
 
+    /**
+     * @return array
+     */
     public function toArray()
     {
-        if (gettype($this->array[0]) == 'object') {
-            $this->array = array_map(function ($item) {
+        if (is_object($this->array[0])) {
+            $this->array = array_map(function (Model $item) {
                 return $item->toArray();
             }, $this->array);
             return $this->array;
@@ -57,26 +81,43 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         }
     }
 
+    /**
+     * @return string
+     */
     public function toJson()
     {
         return json_encode($this->toArray());
     }
 
+    /**
+     * @return int
+     */
     public function count()
     {
         return count($this->array);
     }
 
-    public function eager($model, $field = null, $localKey = null, $foreignKey = '_id')
+    /**
+     * @param Model $model
+     * @param string|null $field
+     * @param string|null $localKey
+     * @param string $foreignKey
+     * @return $this
+     */
+    public function eager(Model $model, $field = null, $localKey = null, $foreignKey = '_id')
     {
         if ($field == null || $localKey == null) {
             $className = strtolower((new \ReflectionClass($model))->getShortName());
             if (Text::endsWith($className, 's')) {
                 $className = substr($className, 0, -1);
             }
+            if ($field == null) {
+                $field = $className;
+            }
+            if ($localKey == null) {
+                $localKey = $className . '_id';
+            }
         }
-        if ($field == null) $field = $className;
-        if ($localKey == null) $localKey = $className . '_id';
         $keys = [];
         foreach ($this->array as $item) {
             if (!in_array($item->{$localKey}, $keys)) {
@@ -90,11 +131,15 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         return $this;
     }
 
+    /**
+     * @param string $field
+     * @return Model[][]
+     */
     public function groupBy($field)
     {
         $results = [];
         foreach ($this->array as $key => $value) {
-            if (gettype($value) == 'object') {
+            if (is_object($value)) {
                 if ($field == '_id') {
                     $results[$value->getId()][] = $value;
                 } else {
@@ -111,11 +156,15 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         return $results;
     }
 
+    /**
+     * @param string $field
+     * @return array
+     */
     public function keyBy($field)
     {
         $results = [];
         foreach ($this->array as $key => $value) {
-            if (gettype($value) == 'object') {
+            if (is_object($value)) {
                 if ($field == '_id') {
                     $results[$value->getId()] = $value;
                 } else {
@@ -132,6 +181,10 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         return $results;
     }
 
+    /**
+     * @param string $field
+     * @return array
+     */
     public function pluck($field)
     {
         return array_map(function ($item) use ($field) {
@@ -139,6 +192,11 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         }, $this->array);
     }
 
+    /**
+     * @param string $key
+     * @param string $value
+     * @return array
+     */
     public function combine($key, $value)
     {
         $results = [];
@@ -148,30 +206,37 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         return $results;
     }
 
+    /**
+     * @param int $size
+     * @return Model[][]
+     */
     public function chunk($size)
     {
         return array_chunk($this->array, $size);
     }
 
-    public function __toString()
-    {
-        if (isset($this->array[0]) && gettype($this->array[0]) == 'object') {
-            return json_encode($this->toArray());
-        } else {
-            return json_encode($this->array);
-        }
-    }
-
+    /**
+     * @param int $offset
+     * @return bool
+     */
     public function offsetExists($offset)
     {
         return isset($this->array[$offset]);
     }
 
+    /**
+     * @param int $offset
+     * @return Model|null
+     */
     public function offsetGet($offset)
     {
         return isset($this->array[$offset]) ? $this->array[$offset] : null;
     }
 
+    /**
+     * @param int $offset
+     * @param mixed $value
+     */
     public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
@@ -181,14 +246,31 @@ class Collection implements Iterator, ArrayAccess, Countable, JsonSerializable
         }
     }
 
+    /**
+     * @param int $offset
+     */
     public function offsetUnset($offset)
     {
         unset($this->array[$offset]);
     }
 
+    /**
+     * @return string
+     */
     public function jsonSerialize()
     {
         return $this->toJson();
     }
 
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        if (isset($this->array[0]) && is_object($this->array[0])) {
+            return json_encode($this->toArray());
+        } else {
+            return json_encode($this->array);
+        }
+    }
 }
