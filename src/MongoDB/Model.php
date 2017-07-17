@@ -26,6 +26,7 @@ use Phalcon\Text;
  * @method static Builder orderBy(string $orderBy, string $direction = 'asc')
  * @method static Builder limit(int $limit, int|null $offset = null)
  * @method static Builder groupBy(string $group)
+ * @method static Builder groupByWithCount(string $group)
  * @method static Collection get()
  * @method static Model first()
  * @method static int count()
